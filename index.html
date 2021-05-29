@@ -44,6 +44,8 @@
       var api_server = 'api.waxsweden.org'
       
       const wax = new waxjs.WaxJS('https://'+api_server, null, null, true);
+      if (wax.api && wax.userAccount)
+          document.getElementById("login").textContent= wax.userAccount;
 
       function showMessage(message, error) {
           document.getElementById("message").style.backgroundColor = (error) ? "tomato" : "mediumseagreen"
