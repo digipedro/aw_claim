@@ -45,6 +45,11 @@
       
       const wax = new waxjs.WaxJS('https://'+api_server, null, null, true);
 
+      function showMessage(message, error) {
+          document.getElementById("message").style.backgroundColor = (error) ? "tomato" : "mediumseagreen"
+          document.getElementById("message").textContent = message;
+      }
+
       function showNFTResults(havesome) {
           if (havesome) {
               showMessage('You have 1 or more NFTs waiting!', false)
@@ -73,15 +78,10 @@
 		    "mode": "cors",
 		    "credentials": "omit" })
 		  .then(response => response.json())
-          .then(data => showNFTResults(data.rows.length > 0)
+          .then(data => showNFTResults(data.rows.length > 0))
 	  	  .catch(error => {
               showMessage('NFT Check Failed: ' + error, true)
 	  	  });
-      }
-
-      function showMessage(message, error) {
-          document.getElementById("message").style.backgroundColor = (error) ? "tomato" : "mediumseagreen"
-          document.getElementById("message").textContent = message;
       }
 
       async function login() {
