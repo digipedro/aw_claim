@@ -44,11 +44,40 @@
       var api_server = 'api.waxsweden.org'
       
       const wax = new waxjs.WaxJS('https://'+api_server, null, null, true);
-      window.onload = async function() {
-          var isAutoLoginAvailable = await wax.isAutoLoginAvailable(); 
-          if (wax.api && wax.userAccount)
-              document.getElementById("login").textContent= wax.userAccount;
-      };
+
+      function showNFTResults(havesome) {
+          if (havesome) {
+              showMessage('You have 1 or more NFTs waiting!', false)
+          } else {
+              document.getElementById("minerimage").contentDocument.ks.animate("#mouth", [{ property: "opacity", times: [0,1000], values: [0, 0]}]);
+              document.getElementById("minerimage").contentDocument.ks.animate("#sadmouth", [{ property: "opacity", times: [0,1000], values: [100, 100]}]);
+              showMessage("Doesn't look like you have any NFTs waiting.", true)
+          }
+      }
+
+      function fetchNFTS() {
+		  fetch("https://" + api_server + "/v1/chain/get_table_rows", {
+		    "headers": {
+		      "accept": "*/*",
+		      "accept-language": "en-US,en;q=0.9",
+		      "content-type": "text/plain;charset=UTF-8",
+		      "sec-ch-ua": "\"Google Chrome\";v=\"89\", \"Chromium\";v=\"89\", \";Not A Brand\";v=\"99\"",
+		      "sec-ch-ua-mobile": "?0",
+		      "sec-fetch-dest": "empty",
+		      "sec-fetch-mode": "cors",
+		      "sec-fetch-site": "cross-site"
+		    },
+		    "referrerPolicy": "strict-origin-when-cross-origin",
+		    "body": '{"json":true,"code":"m.federation","scope":"m.federation","table":"claims","lower_bound":"' + wax.userAccount + '","upper_bound":"' + wax.userAccount + '","index_position":1,"key_type":"","limit":1,"reverse":false,"show_payer":false}',
+		    "method": "POST",
+		    "mode": "cors",
+		    "credentials": "omit" })
+		  .then(response => response.json())
+          .then(data => showNFTResults(data.rows.length > 0)
+	  	  .catch(error => {
+              showMessage('NFT Check Failed: ' + error, true)
+	  	  });
+      }
 
       function showMessage(message, error) {
           document.getElementById("message").style.backgroundColor = (error) ? "tomato" : "mediumseagreen"
@@ -59,7 +88,8 @@
           var isAutoLoginAvailable = await wax.isAutoLoginAvailable(); 
           try {
               const userAccount = await wax.login();
-              document.getElementById("login").textContent= wax.userAccount;
+              document.getElementById("login").textContent = wax.userAccount;
+              fetchNFTS()
           } catch(e) {
               showMessage('Login Failed: ' + e.message, true);
           }
@@ -71,7 +101,7 @@
               return false;
           }
           document.getElementById("minerimage").contentDocument.ks.globalPlay();
-          showMessage('Checking for NFTs...', false);
+          showMessage('Claiming NFTs...', false);
           
           try {
               const result = await wax.api.transact({
@@ -91,19 +121,27 @@
                 expireSeconds: 30
               });
               
-              showMessage('Claim action complete, check your wallet for NFTs. Good Luck.', false);
+              showMessage('Claim action complete, check your wallet for NFTs. Good Luck!', false);
               // console.log(JSON.stringify(result));
           } catch(e) {
               showMessage('Claim Failed: ' + e.message, true)
           }
           document.getElementById("minerimage").contentDocument.ks.globalPause();
       }
+      
+      window.onload = async function() {
+          var isAutoLoginAvailable = await wax.isAutoLoginAvailable(); 
+          if (wax.api && wax.userAccount) {
+              document.getElementById("login").textContent = wax.userAccount;
+              fetchNFTS();
+          }
+      };
 
   </script>
 </head>
 <body>
     <center><div class="wrapper">
-        <div><object id="minerimage" class="minerimage" type="image/svg+xml" data="animiner.svg?global=paused"><img class="minerimage" src="animiner.svg" /></object></div>
+        <div><object id="minerimage" class="minerimage" type="image/svg+xml" data="animiner2.svg?global=paused"><img class="minerimage" src="animiner.svg" /></object></div>
         <div>
             <button class="button2" id="login" onclick="login()">Login</button>
             <button class="button2" id="claimnfts" onclick="doClaimNFTs()">Claim NFTs</button>
